@@ -13,14 +13,11 @@ xb_t=xb;
 y_t = yd;
 vetor_erro = y_t;
 
-erro_desejado = ones(1,200).*0.15
-
 cnt = 1;
 
-w(1) = -0.5 + 0.5*rand(1,1);
-w(2) = -0.5 + 0.5*rand(1,1);
+w = rand(1,2); % wa = w(1) ...
 alpha = 0.3;
-theta = 0;
+theta = 0.5;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
@@ -61,37 +58,40 @@ xb = xb(1:1:s-1);
 xa_t = xa_t(1:1:length(B));
 xb_t = xb_t(1:1:length(B));
 %%%%%%%%%%%%%%%%normalizar dados de input%%%%%%%%%%%%%%%%%%%
-maximo = max([xa,xb]);
-minimo = min([xa,xb]);
-xa = (xa - minimo)./(maximo-minimo);
-xb = (xb - minimo)./(maximo-minimo);
-xa_t = (xa_t - minimo)./(maximo-minimo);
-xb_t = (xb_t - minimo)./(maximo-minimo);
+max = 100;
+min = -100;
+xa = (xa - min)./(max-min);
+xb = (xb - min)./(max-min);
+xa_t = (xa_t - min)./(max-min);
+xb_t = (xb_t - min)./(max-min);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%sum e func de ativ%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 somatorio = xa.*w(1) + xb.*w(2);
 somatorio = somatorio(1:1:s-1);
+for i=1:1:s-1  
+    y(i) = tanh(somatorio(i) - theta);
+end
 y=y(1:1:s-1);
 yd=yd(1:1:s-1);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% for i=1:1:s-1  
-%     y(i) = sign(somatorio(i) - theta);
-% end
-% 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% %%%%%%%%%%%%%%%%calculo erro e delta rule%%%%%%%%%%%%%%%%%%%
-% 
-%  erro  = (yd - y);
-% 
-%  delta1 = alpha*erro*xa';
-%  delta2 = alpha*erro*xb';
+%%%%%%%%%%%%%%%%calculo erro e delta rule%%%%%%%%%%%%%%%%%%%
+derivada = diff(tanh(x))
+
+subs(derivada,x,2)
+
+erro = (yd(1) - y(1));
+delta1 = alpha*erro.*xa(1);
+delta2 = alpha*erro.*xb(1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 
 while 1 
+
+    w(1) = w(1) + delta1;
+    w(2) = w(2) + delta2;
 
     for j=1:1:s-1 
     y(j) = tanh(somatorio(j) - theta);
@@ -101,13 +101,8 @@ while 1
 
     delta1 = alpha*erro*xa';
     delta2 = alpha*erro*xb';
-    
-    w(1) = w(1) + delta1;
-    w(2) = w(2) + delta2;
-    
-    somatorio = xa.*w(1) + xb.*w(2);
 
-    if(cnt > 50000)
+    if(abs(erro) < 0.0.1)
         break;
     end
     cnt = cnt +1;        
@@ -115,7 +110,7 @@ end
 
 iteracao = linspace(0,cnt,cnt);
 
-%%plot(iteracao,vetor_erro);
+plot(iteracao,vetor_erro);
 
 %%%%%%%%%%%%%%%%%%%%%%%testar%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 y_t=y_t(1:1:length(B));

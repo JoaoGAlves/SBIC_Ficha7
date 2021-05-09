@@ -27,11 +27,11 @@ sizeA = [3 1000];
 sizeB = [2 1000];
 fileID = fopen('testInput10A.txt', 'r');
 
-[A,count] = fscanf(fileID, '%f,%f,%d', sizeA); %lê tudo que é para treino
+[A,count] = fscanf(fileID, '%f,%f,%d', sizeA); %lÃª tudo que Ã© para treino
 
 B=[A(1,length(A)); A(2,length(A))];
 [B1, count] = fscanf(fileID, '%f,%f', sizeB);
-B=[B(1,1), B1(1,:);B(2,1), B1(2,:)]; %lê tudo que é para testar
+B=[B(1,1), B1(1,:);B(2,1), B1(2,:)]; %lÃª tudo que Ã© para testar
 fclose(fileID);
 A=A';
 B=B';
@@ -97,23 +97,22 @@ while 1
     y(j) = tanh(somatorio(j) - theta);
     end
 
-    erro  = (yd - y);
+    erro  = (yd - y).^2
 
-    delta1 = alpha*erro*xa';
-    delta2 = alpha*erro*xb';
+    delta1 = alpha*-2*(yd-y)*xa';
+    delta2 = alpha*-2*(yd-y)*xb';
     
     w(1) = w(1) + delta1;
     w(2) = w(2) + delta2;
     
     somatorio = xa.*w(1) + xb.*w(2);
 
-    if(cnt > 50000)
-        break;
-    end
+%     if(cnt > 50000)
+%         break;
+%     end
     cnt = cnt +1;        
 end
 
-iteracao = linspace(0,cnt,cnt);
 
 %%plot(iteracao,vetor_erro);
 
