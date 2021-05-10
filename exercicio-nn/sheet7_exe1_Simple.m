@@ -95,15 +95,15 @@ yd=yd(1:1:s-1);
 while 1 
     
     for j=1:1:s-1 
-    percepton_output = tanh(xa(j)*w(1)+xb(j)*w(2)-theta*w(3));
+    percepton_output = sign(xa(j)*w(1)+xb(j)*w(2)+theta*w(3));
     
     w(1) = w(1) + alpha*(yd(j)-percepton_output)*xa(j);
     w(2) = w(2) + alpha*(yd(j)-percepton_output)*xb(j);
-    w(1) = w(1) + alpha*(yd(j)-percepton_output)*theta;
+    w(3) = w(3) + alpha*(yd(j)-percepton_output)*theta;
     
     end
-    y = tanh(xa.*w(1)+xb.*w(2)-theta*w(3))
-    if(abs(yd-y) <= erro_desejado)
+    y = sign(xa.*w(1)+xb.*w(2)+theta*w(3))
+    if(yd-y == 0)
         break
     end
 end
@@ -113,7 +113,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%testar%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 y_t=y_t(1:1:length(B));
-y_t = tanh(xa_t.*w(1) + xb_t.*w(2) -theta*(w(3)));
+y_t = sign(xa_t.*w(1) + xb_t.*w(2) + theta*(w(3)));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
