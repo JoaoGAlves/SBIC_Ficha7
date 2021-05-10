@@ -19,8 +19,9 @@ cnt = 1;
 
 w(1) = -0.5 + 0.5*rand(1,1);
 w(2) = -0.5 + 0.5*rand(1,1);
-alpha = 0.3;
-theta = 0;
+w(3) = -0.5 + 0.5*rand(1,1);
+alpha = 0.05;
+theta = 1;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
@@ -92,25 +93,19 @@ yd=yd(1:1:s-1);
 
 %%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 
 while 1 
-
+    
     for j=1:1:s-1 
-    y(j) = tanh(somatorio(j) - theta);
+    percepton_output = sign(xa(j)*w(1)+xb(j)*w(2)-theta*w(3));
+    
+    w(1) = w(1) + alpha*(yd(j)-percepton_output)*xa(j);
+    w(2) = w(2) + alpha*(yd(j)-percepton_output)*xb(j);
+    w(1) = w(1) + alpha*(yd(j)-percepton_output)*theta;
+    
     end
-
-    erro  = (yd - y).^2
-
-    delta1 = alpha*-2*(yd-y)*xa';
-    delta2 = alpha*-2*(yd-y)*xb';
     
-    w(1) = w(1) + delta1;
-    w(2) = w(2) + delta2;
-    
-    somatorio = xa.*w(1) + xb.*w(2);
-
-%     if(cnt > 50000)
-%         break;
-%     end
-    cnt = cnt +1;        
+    if((yd-y) == 0)
+        break
+    end
 end
 
 
@@ -118,11 +113,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%testar%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 y_t=y_t(1:1:length(B));
-somatorio_t = xa_t.*w(1) + xb_t.*w(2);
-somatorio_t = somatorio_t(1:1:length(B));
-for i=1:1:length(B)
-    y_t(i) = tanh(somatorio_t(i) - theta);
-end
+y_t = sign(xa_t.*w(1) + xb_t.*w(2) -theta*(w(3)));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
