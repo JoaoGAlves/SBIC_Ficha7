@@ -1,5 +1,7 @@
 clf;
 
+syms y_deriv
+
 xa = zeros(1,1000);
 xb = xa; %inicializar xa e xb
 yd = xb;
@@ -121,22 +123,47 @@ figure(2)
 
 y=y(1:1:s-1);
 yd=yd(1:1:s-1);
+syms target output In h_resp
+dEtotal_dOut = (Target-Output); %-1 para retirar na 
+dOut_dY = 1/(1+exp(-In))*(1-1/(1+exp(-In)));
+dY_dW = h_resp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 
 while 1 
     
     for j=1:1:s-1 
-
-         h(1)=sigmoid(w(1,1,1)*xa(j)+w(2,1,1)*xb(j)+b(1)) %devia de levar for, mas ta hardcoded
-         h(2)=sigmoid(w(1,2,1)*xa(j)+w(2,2,1)*xb(j)+b(2))
-         for k=1:1:1
-             y(j)=sigmoid(w(1,k,2)*h(1)+w(2,k,2)*h(2)+b2(1));
+            %forward prop
+         dlX=w(1,1,1)*xa(j)+w(2,1,1)*xb(j)+b(1);
+         h(1)=1/(1+exp(-dlX)); %devia de levar for, mas ta hardcoded
+         dlX=w(1,2,1)*xa(j)+w(2,2,1)*xb(j)+b(2);
+         h(2)=1/(1+exp(-dlX));
+         
+         for k=1:1:1 %outputs
+             dlX=w(1,k,2)*h(1)+w(2,k,2)*h(2)+b2(1);
+             y(j)=1/(1+exp(-dlX)); %output Y
          end
          for k=1:1:1
             E_tot = (1/2)*(yd(j)-y(j))^2
          end
            %começar daqui a implementar backpropagation...............
+           %back prop
+         for k=1:1:2 % numero de neuronios na hidden layer
+             dEtotal_dw = subst(dEtotal_dOut, [target, output], [y_d(j) y(j)]) 
+                          + subst(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2))
+                          + subst(dY_dW, h_resp, h(k))
+             w(k,1,2) = w(k,1,2) - alpha*dEtotal_dw
+               
+         end
+         
+          %for k=1:1:2 % numero de neuronios no input
+             %dEtotal_dw = subst(dEtotal_dOut, [target, output], [y_d(j) y(j)]) 
+                         + subst(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2))
+                         + subst(dY_dW, h_resp, h(k))
+             %w(k,1,2) = w(k,1,2) - alpha*dEtotal_dw
+               
+         %end
+           
     end
    
     
