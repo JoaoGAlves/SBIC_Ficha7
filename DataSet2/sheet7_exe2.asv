@@ -26,7 +26,7 @@ w(1,1,2) = -0.5 + 0.5*rand(1,1); %segundas linhas
 w(2,1,2) = -0.5 + 0.5*rand(1,1);
 
 %w(:,:,:)
-alpha = 0.05;
+alpha = 0.5;
 theta = 1;
 b = zeros(1,2);
 b2 = zeros(1,2);
@@ -124,8 +124,8 @@ figure(2)
 y=y(1:1:s-1);
 yd=yd(1:1:s-1);
 syms target output In h_resp
-dEtotal_dOut = (Target-Output); %-1 para retirar na 
-dOut_dY = 1/(1+exp(-In))*(1-1/(1+exp(-In)));
+dEtotal_dOut = (output-target); %-1 para retirar na 
+dOut_dY = 1/(1+exp(-10*In))*(1-1/(1+exp(-10*In)));
 dY_dW = h_resp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -134,14 +134,14 @@ while 1
     
     for j=1:1:s-1 
             %forward prop
-         dlX=w(1,1,1)*xa(j)+w(2,1,1)*xb(j)+b(1);
-         h(1)=1/(1+exp(-dlX)); %devia de levar for, mas ta hardcoded
+         dlX=w(1,1,1)*xa(j)+w(2,1,1)*xb(j)+b(1); %w*x = h
+         h(1)=1/(1+exp(-10*dlX)); %devia de levar for, mas ta hardcoded
          dlX=w(1,2,1)*xa(j)+w(2,2,1)*xb(j)+b(2);
-         h(2)=1/(1+exp(-dlX));
+         h(2)=1/(1+exp(-10*dlX)); %%out de h
          
          for k=1:1:1 %outputs
              dlX=w(1,k,2)*h(1)+w(2,k,2)*h(2)+b2(1);
-             y(j)=1/(1+exp(-dlX)); %output Y
+             y(j)=1/(1+exp(-10*dlX)) %output Y
          end
          for k=1:1:1
             E_tot = (1/2)*(yd(j)-y(j))^2
@@ -149,28 +149,26 @@ while 1
            %começar daqui a implementar backpropagation...............
            %back prop
          for k=1:1:2 % numero de neuronios na hidden layer
-             dEtotal_dw = subst(dEtotal_dOut, [target, output], [y_d(j) y(j)]) 
-                          + subst(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2))
-                          + subst(dY_dW, h_resp, h(k))
-             w(k,1,2) = w(k,1,2) - alpha*dEtotal_dw
+             dEtotal_dw = vpa(subs(dEtotal_dOut, [target, output], [yd(j) y(j)]) * subs(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2)) * subs(dY_dW, h_resp, h(k)));
+             w(k,1,2) = w(k,1,2) - alpha*dEtotal_dw;
                
          end
          
-          for k=1:1:2 % numero de neuronios no input
-             %dEtotal_dw = subst(dEtotal_dOut, [target, output], [y_d(j) y(j)]) 
-              %           + subst(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2))
-              %           + subst(dY_dW, h_resp, h(k))
-             %w(k,1,2) = w(k,1,2) - alpha*dEtotal_dw
-               
+         for n=1:1:2
+                for k=1:1:2
+                    if (k == 1)
+                        x = xa(j);
+                    end
+                    if(k == 2)
+                        x = xb(j);
+                    end
+                    dEtotal_dw_layer1 =  vpa(subs(dEtotal_dOut, [target, output], [yd(j) y(j)]) * subs(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2))*w(n,1,2)*(h(n)*(1-h(n)))*x);
+                    w(k,n,1) = w(k,n,1) - alpha*dEtotal_dw_layer1;
+                end
          end
-           
+                  
     end
    
-    
-    y = sign(xa.*w(1)+xb.*w(2)+theta*w(3));
-    if(yd-y == 0)
-        break
-    end
 end
 
 
