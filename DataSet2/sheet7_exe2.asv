@@ -12,21 +12,29 @@ y_t = yd;
 vetor_erro = y_t;
 R = yd;
 
+%%%%%%declarar parametros da neural network%%%%%%%%%%%%%
+NNI = 2; %Numero neuronios Input
+NNH = 2; %Numero neuronios hidden layer
+NNO = 1; %Numero neuronios Output
+NHL = 1; %Numero Hidden Layers
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 erro_desejado = ones(1,200).*0.15;
-w=zeros(2,2);
-w(:,:,1)=[w];
-w(:,:,2) =[w];
+w=zeros(NNI,NNH);
 
-w(1,1,1) = -0.5 + 0.5*rand(1,1); %primeiras linhas
-w(1,2,1) = -0.5 + 0.5*rand(1,1);
-w(2,1,1) = -0.5 + 0.5*rand(1,1);
-w(2,2,1) = -0.5 + 0.5*rand(1,1);
+for i = 1:1:(NHL+1) %% numero de hiddenlayers+1
+    w(:,:,i)=[w];
+end
 
-w(1,1,2) = -0.5 + 0.5*rand(1,1); %segundas linhas
-w(2,1,2) = -0.5 + 0.5*rand(1,1);
+for i = 1:1:(NHL+1)
+    for j = 1:1:(NNI)
+        for k = 1:1:(NNO)
+            w(j,k,i) = -0.5 + 0.5*rand(1,1); %primeiras linhas
+        end
+    end
+end
 
-%w(:,:,:)
-alpha = 0.5;
+alpha = 0.15;
 theta = 1;
 b = zeros(1,2);
 b2 = zeros(1,2);
@@ -49,6 +57,7 @@ switch f
         stringInputF = 'testInput11C.txt';
         stringOutputF = 'testOutput11C.txt';
 end
+
 fileID = fopen(stringInputF, 'r');
     [A,count] = fscanf(fileID, '%f,%f,%d', sizeA); %lê tudo que é para treino
     B=[A(1,length(A)); A(2,length(A))];
@@ -124,52 +133,64 @@ figure(2)
 y=y(1:1:s-1);
 yd=yd(1:1:s-1);
 syms target output In h_resp
-dEtotal_dOut = (output-target); %-1 para retirar na 
-dOut_dY = 1/(1+exp(-10*In))*(1-1/(1+exp(-10*In)));
+Etotal = (1/2)*(target-output)^2
+dEtotal_dOut = diff(Etotal, output); %-1 para retirar na 
+dOut_dY = diff(1/(1+exp(-10*In)), In);
 dY_dW = h_resp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%%
+erro_desejado = erro_desejado(1:1:s-1);
 while 1 
     
     for j=1:1:s-1 
-            %forward prop
+         %forward prop%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         
          dlX=w(1,1,1)*xa(j)+w(2,1,1)*xb(j)+b(1); %w*x = h
-         h(1)=1/(1+exp(-10*dlX)); %devia de levar for, mas ta hardcoded
+         h(1)=1/(1+exp(-10*dlX)); %devia de levar for, mas ta hardcoded%%%%%%%%%%%%%%%%%%%%5
          dlX=w(1,2,1)*xa(j)+w(2,2,1)*xb(j)+b(2);
          h(2)=1/(1+exp(-10*dlX)); %%out de h
          
-         for k=1:1:1 %outputs
+         for k=1:1:NNO %outputs
              dlX=w(1,k,2)*h(1)+w(2,k,2)*h(2)+b2(1);
-             y(j)=1/(1+exp(-10*dlX)) %output Y
+             y(j)=1/(1+exp(-10*dlX)); %output Y
          end
-         for k=1:1:1
+         for k=1:1:NNO
             E_tot = (1/2)*(yd(j)-y(j))^2
          end
-           %come�ar daqui a implementar backpropagation...............
-           %back prop
+         
+         %end forward prop%%%%%%%%%%%%%%%%%%%%%%%%%
+           
+         %back prop%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
          for k=1:1:2 % numero de neuronios na hidden layer
              dEtotal_dw = vpa(subs(dEtotal_dOut, [target, output], [yd(j) y(j)]) * subs(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2)) * subs(dY_dW, h_resp, h(k)));
              w(k,1,2) = w(k,1,2) - alpha*dEtotal_dw;
                
          end
          
-         for n=1:1:2
-                for k=1:1:2
+         for n=1:1:NNH
+                for k=1:1:NNI
                     if (k == 1)
                         x = xa(j);
                     end
                     if(k == 2)
                         x = xb(j);
                     end
+                   
                     dEtotal_dw_layer1 =  vpa(subs(dEtotal_dOut, [target, output], [yd(j) y(j)]) * subs(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2))*w(n,1,2)*(h(n)*(1-h(n)))*x);
                     w(k,n,1) = w(k,n,1) - alpha*dEtotal_dw_layer1;
                 end
          end
-                  
+         
+        %end backprop%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
-   
+    if(abs(yd-y) <= erro_desejado)
+        break
+    end
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
