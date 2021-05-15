@@ -12,24 +12,34 @@ y_t = yd;
 vetor_erro = y_t;
 R = yd;
 
+deltak = zeros(0,0);
+
 erro_desejado = ones(1,200).*0.15;
 w=zeros(2,2);
 w(:,:,1)=[w];
 w(:,:,2) =[w];
 
-w(1,1,1) = -0.5 + 0.5*rand(1,1); %primeiras linhas
-w(1,2,1) = -0.5 + 0.5*rand(1,1);
-w(2,1,1) = -0.5 + 0.5*rand(1,1);
-w(2,2,1) = -0.5 + 0.5*rand(1,1);
+%w(1,1,1) = -0.5 + 0.5*rand(1,1); %primeiras linhas
+%w(1,2,1) = -0.5 + 0.5*rand(1,1);
+%w(2,1,1) = -0.5 + 0.5*rand(1,1);
+%w(2,2,1) = -0.5 + 0.5*rand(1,1);
+w(1,1,1) = 0.3;
+w(1,2,1) = 0.3;
+w(2,1,1) = 0.3;
+w(2,2,1) = 0.3;
 
-w(1,1,2) = -0.5 + 0.5*rand(1,1); %segundas linhas
-w(2,1,2) = -0.5 + 0.5*rand(1,1);
+
+
+%w(1,1,2) = -0.5 + 0.5*rand(1,1); %segundas linhas
+%w(2,1,2) = -0.5 + 0.5*rand(1,1);
+w(1,1,2) = 0.3;
+w(2,1,2) = 0.3;
 
 %w(:,:,:)
-alpha = 0.5;
-theta = 1;
-b = zeros(1,2);
-b2 = zeros(1,2);
+alpha = 0.15;
+theta = 0.5;
+b = ones(1,2).*0.5;
+b2 = ones(1,2).*0.5;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
@@ -50,10 +60,10 @@ switch f
         stringOutputF = 'testOutput11C.txt';
 end
 fileID = fopen(stringInputF, 'r');
-    [A,count] = fscanf(fileID, '%f,%f,%d', sizeA); %lê tudo que é para treino
+    [A,count] = fscanf(fileID, '%f,%f,%d', sizeA); %lÃª tudo que Ã© para treino
     B=[A(1,length(A)); A(2,length(A))];
     [B1, count] = fscanf(fileID, '%f,%f', sizeB);
-    B=[B(1,1), B1(1,:);B(2,1), B1(2,:)]; %lê tudo que é para testar
+    B=[B(1,1), B1(1,:);B(2,1), B1(2,:)]; %lÃª tudo que Ã© para testar
 fclose(fileID);
 
 fileID = fopen(stringOutputF, 'r');
@@ -102,12 +112,15 @@ R = R(1:1:s-1);
     ylabel('xb')
     hold off
 %%%%%%%%%%%%%%%%normalizar dados de input%%%%%%%%%%%%%%%%%%%
-maximo = max([xa,xb]);
-minimo = min([xa,xb]);
-xa = (xa - minimo)./(maximo-minimo);
-xb = (xb - minimo)./(maximo-minimo);
-xa_t = (xa_t - minimo)./(maximo-minimo);
-xb_t = (xb_t - minimo)./(maximo-minimo);
+maximo_xa = max(xa);
+minimo_xa = min(xa);
+maximo_xb = max(xb);
+minimo_xb = min(xb);
+xa = (xa - minimo_xa)/(maximo_xa-minimo_xa);
+xb = (xb - minimo_xb)/(maximo_xb-minimo_xb);
+yd = (yd - -1)./(1 - - 1);
+xa_t = (xa_t - minimo_xa)./(maximo_xa-minimo_xa);
+xb_t = (xb_t - minimo_xb)./(maximo_xb-minimo_xb);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 figure(2)
     hold on
@@ -120,13 +133,9 @@ figure(2)
     hold off
  
 %%%%%%%%%%%%%%%%sum e func de ativ%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+erro_desejado = erro_desejado(1:1:s-1);
 y=y(1:1:s-1);
 yd=yd(1:1:s-1);
-syms target output In h_resp
-dEtotal_dOut = (output-target); %-1 para retirar na 
-dOut_dY = 1/(1+exp(-10*In))*(1-1/(1+exp(-10*In)));
-dY_dW = h_resp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 
@@ -134,41 +143,48 @@ while 1
     
     for j=1:1:s-1 
             %forward prop
-         dlX=w(1,1,1)*xa(j)+w(2,1,1)*xb(j)+b(1); %w*x = h
-         h(1)=1/(1+exp(-10*dlX)); %devia de levar for, mas ta hardcoded
-         dlX=w(1,2,1)*xa(j)+w(2,2,1)*xb(j)+b(2);
-         h(2)=1/(1+exp(-10*dlX)); %%out de h
+         %xa(j)
+         %xb(j)
+         h(1)=w(1,1,1)*xa(j)+w(2,1,1)*xb(j) + b(1); %w*x = h
+         out_h(1)=1/(1+exp(-h(1))); %devia de levar for, mas ta hardcoded
+         h(2)=w(1,2,1)*xa(j)+w(2,2,1)*xb(j) + b(2);
+         out_h(2)=1/(1+exp(-h(2))); %%out de h
          
          for k=1:1:1 %outputs
-             dlX=w(1,k,2)*h(1)+w(2,k,2)*h(2)+b2(1);
-             y(j)=1/(1+exp(-10*dlX)) %output Y
+             out=w(1,k,2)*out_h(1)+w(2,k,2)*out_h(2) + b2(1)
+             y(j)=1/(1+exp(-out)) %output Y
          end
          for k=1:1:1
-            E_tot = (1/2)*(yd(j)-y(j))^2
+            E_tot = (1/2)*(yd(j)-y(j))^2;
          end
-           %come�ar daqui a implementar backpropagation...............
+           %começar daqui a implementar backpropagation...............
            %back prop
-         for k=1:1:2 % numero de neuronios na hidden layer
-             dEtotal_dw = vpa(subs(dEtotal_dOut, [target, output], [yd(j) y(j)]) * subs(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2)) * subs(dY_dW, h_resp, h(k)));
-             w(k,1,2) = w(k,1,2) - alpha*dEtotal_dw;
-               
+           
+         for k=1:1:2
+             deltak = y(j)*(1-y(j))*(yd(j)-y(j))
+             w(k,1,2) = w(k,1,2) + deltak*alpha*out_h(k);
          end
          
-         for n=1:1:2
-                for k=1:1:2
-                    if (k == 1)
+         for i=1:1:2
+             for k=1:1:2
+                 
+                 if (k == 1)
                         x = xa(j);
-                    end
-                    if(k == 2)
+                 end
+                 if(k == 2)
                         x = xb(j);
-                    end
-                    dEtotal_dw_layer1 =  vpa(subs(dEtotal_dOut, [target, output], [yd(j) y(j)]) * subs(dOut_dY, In, w(1,1,2)*h(1)+w(2,1,2)*h(2))*w(n,1,2)*(h(n)*(1-h(n)))*x);
-                    w(k,n,1) = w(k,n,1) - alpha*dEtotal_dw_layer1;
-                end
+                 end
+                 
+                deltah = out_h(i)*(1-out_h(i))*(w(i,1,2)*deltak)
+                w(k,i,1) = w(k,i,1) + alpha*deltah*x;
+             end
          end
-                  
+                   
     end
-   
+    
+    if(abs(yd-y) <= erro_desejado)
+        break
+    end
 end
 
 
