@@ -34,8 +34,14 @@ for i = 1:1:(NHL+1)
     end
 end
 
+<<<<<<< HEAD
 alpha = 0.15;
 theta = 1;
+=======
+%w(:,:,:)
+alpha = 0.5;
+theta = 0.5;
+>>>>>>> main
 b = zeros(1,2);
 b2 = zeros(1,2);
 
@@ -115,6 +121,7 @@ maximo = max([xa,xb]);
 minimo = min([xa,xb]);
 xa = (xa - minimo)./(maximo-minimo);
 xb = (xb - minimo)./(maximo-minimo);
+yd = (yd - -1)./(1 - - 1);
 xa_t = (xa_t - minimo)./(maximo-minimo);
 xb_t = (xb_t - minimo)./(maximo-minimo);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,9 +140,14 @@ figure(2)
 y=y(1:1:s-1);
 yd=yd(1:1:s-1);
 syms target output In h_resp
+<<<<<<< HEAD
 Etotal = (1/2)*(target-output)^2
 dEtotal_dOut = diff(Etotal, output); %-1 para retirar na 
 dOut_dY = diff(1/(1+exp(-10*In)), In);
+=======
+dEtotal_dOut = (output-target); %-1 para retirar na 
+dOut_dY = 1/(1+exp(-0.1*In))*(1-1/(1+exp(-0.1*In)));
+>>>>>>> main
 dY_dW = h_resp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -147,13 +159,23 @@ while 1
          %forward prop%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          
          dlX=w(1,1,1)*xa(j)+w(2,1,1)*xb(j)+b(1); %w*x = h
+<<<<<<< HEAD
          h(1)=1/(1+exp(-10*dlX)); %devia de levar for, mas ta hardcoded%%%%%%%%%%%%%%%%%%%%5
+=======
+         h(1)=1/(1+exp(-0.1*dlX)); %devia de levar for, mas ta hardcoded
+>>>>>>> main
          dlX=w(1,2,1)*xa(j)+w(2,2,1)*xb(j)+b(2);
-         h(2)=1/(1+exp(-10*dlX)); %%out de h
+         h(2)=1/(1+exp(-0.1*dlX)); %%out de h
          
+<<<<<<< HEAD
          for k=1:1:NNO %outputs
              dlX=w(1,k,2)*h(1)+w(2,k,2)*h(2)+b2(1);
              y(j)=1/(1+exp(-10*dlX)); %output Y
+=======
+         for k=1:1:1 %outputs
+             dlX=w(1,k,2)*h(1)+w(2,k,2)*h(2)+b2(1)
+             y(j)=1/(1+exp(-0.1*dlX)) %output Y
+>>>>>>> main
          end
          for k=1:1:NNO
             E_tot = (1/2)*(yd(j)-y(j))^2
