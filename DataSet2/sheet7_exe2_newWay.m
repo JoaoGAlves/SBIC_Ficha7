@@ -15,7 +15,7 @@ R = yd;
 deltak = zeros(0,0);
 
 erro_desejado = ones(1,200).*0.15;
-w=zeros(2,2);
+w=zeros(3,3);
 w(:,:,1)=[w];
 w(:,:,2) =[w];
 
@@ -27,6 +27,8 @@ w(1,1,1) = 0.3;
 w(1,2,1) = 0.3;
 w(2,1,1) = 0.3;
 w(2,2,1) = 0.3;
+w(3,1,1) = 0.3;
+w(3,2,1) = 0.3;
 
 
 
@@ -36,8 +38,7 @@ w(1,1,2) = 0.3;
 w(2,1,2) = 0.3;
 
 %w(:,:,:)
-alpha = 0.5;
-theta = 0.5;
+alpha = 0.1;
 b = ones(1,2).*2;
 b2 = ones(1,2).*2;
 
@@ -138,20 +139,22 @@ y=y(1:1:s-1);
 yd=yd(1:1:s-1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 1 hidden layer com 2 nós
 while 1 
     
     for j=1:1:s-1 
             %forward prop
          %xa(j)
          %xb(j)
-         h(1)=w(1,1,1)*xa(j)+w(2,1,1)*xb(j) - b(1); %w*x = h
+         h(1)=w(1,1,1)*xa(j)+w(2,1,1)*xb(j) + b(1); %w*x = h
          out_h(1)=1/(1+exp(-h(1))); %devia de levar for, mas ta hardcoded
-         h(2)=w(1,2,1)*xa(j)+w(2,2,1)*xb(j) - b(2);
+         h(2)=w(1,2,1)*xa(j)+w(2,2,1)*xb(j) + b(2);
          out_h(2)=1/(1+exp(-h(2))); %%out de h
+         %h(3)=w(1,3,1)*xa(j)+w(2,3,1)*xb(j) + b(2);
+         %out_h(3)=1/(1+exp(-h(3))); %%out de h
          
          for k=1:1:1 %outputs
-             out=w(1,k,2)*out_h(1)+w(2,k,2)*out_h(2) - b2(1)
+             out=w(1,k,2)*out_h(1)+w(2,k,2)*out_h(2) + b2(1)
              y(j)=1/(1+exp(-out)) %output Y
          end
          for k=1:1:1
@@ -161,7 +164,8 @@ while 1
            %back prop
            
          for k=1:1:2
-             deltak = y(j)*(1-y(j))*(yd(j)-y(j));
+             deltak = -y(j)*(1-y(j))*(yd(j)-y(j));
+%              w(k,1,2) = w(k,1,2) + deltak*alpha*h(k);
          end
          
          for i=1:1:2
@@ -175,12 +179,12 @@ while 1
                  end
                  
                 deltah = out_h(i)*(1-out_h(i))*(w(i,1,2)*deltak);
-                w(k,i,1) = w(k,i,1) + alpha*deltah*x;
+                w(k,i,1) = w(k,i,1) - alpha*deltah*x;
              end
          end
          
          for k=1:1:2
-             w(k,1,2) = w(k,1,2) + deltak*alpha*out_h(k);
+             w(k,1,2) = w(k,1,2) - deltak*alpha*out_h(k);
          end
                    
     end
