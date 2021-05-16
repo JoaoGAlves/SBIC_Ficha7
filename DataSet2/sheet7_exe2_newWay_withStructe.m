@@ -1,5 +1,5 @@
-clf;
 
+clear all;
 syms y_deriv
 
 xa = zeros(1,1000);
@@ -41,9 +41,7 @@ w(2,1,2) = 0.3;
 
 
 %w(:,:,:)
-alpha = 10;
-b = ones(1,2).*2;
-b2 = ones(1,2).*2;
+alpha = 0.15;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
@@ -101,22 +99,22 @@ for i=1:1:size(B, 1) %retira valores depois de encontrar 0
 end
 
 n_hidden_layers = 1;
-n_nodes_per_layers = 2;
+n_nodes_per_layers = 5;
 
-node(n_hidden_layers,n_nodes_per_layers).weights(n_nodes_per_layers) = 0;
-node(n_hidden_layers,n_nodes_per_layers).bias = 1;
-node(n_hidden_layers,n_nodes_per_layers).outputA(s-1) = 0;
-node(n_hidden_layers,n_nodes_per_layers).output(s-1) = 0;
+node(n_hidden_layers,n_nodes_per_layers).weights = zeros(1, n_nodes_per_layers);
+node(n_hidden_layers,n_nodes_per_layers).bias = ones(1,n_nodes_per_layers);
+node(n_hidden_layers,n_nodes_per_layers).outputA = zeros(1,s-1);
+node(n_hidden_layers,n_nodes_per_layers).output = zeros(1,s-1);
 
 for k=1:1:n_hidden_layers
     for i=1:1:n_nodes_per_layers
-        node(k,i).weights = -2.4/2 + -2.4/2*rand(1,n_nodes_per_layers);
-        node(k,i).bias = 1;
+        node(k,i).weights = -0.5 + rand(1,n_nodes_per_layers);%-2.4/2 + -2.4/2*rand(1,n_nodes_per_layers);
+        node(k,i).bias = -1;
     end
 end
 
-output_node.weights = -2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
-output_node.bias = 0.5;
+output_node.weights = -0.5 + rand(1,n_nodes_per_layers);%-2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
+output_node.bias = -1;
 output_node.output = 0;
 output_node.outputA = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,7 +139,7 @@ maximo_xb = max(xb);
 minimo_xb = min(xb);
 xa = (xa - minimo_xa)/(maximo_xa-minimo_xa);
 xb = (xb - minimo_xb)/(maximo_xb-minimo_xb);
-yd = (yd - -1)./(1 - - 1);
+yd = (yd +1)./(1 + 1);
 xa_t = (xa_t - minimo_xa)./(maximo_xa-minimo_xa);
 xb_t = (xb_t - minimo_xb)./(maximo_xb-minimo_xb);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -161,68 +159,17 @@ y=y(1:1:s-1);
 yd=yd(1:1:s-1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%treino%%%%%%%%%%%%%%%%%%% 1 hidden layer com 2 nós
-% while 1 
-%     
-%     for j=1:1:s-1 
-%             %forward prop
-%          %xa(j)
-%          %xb(j)
-%          h(1)=w(1,1,1)*xa(j)+w(2,1,1)*xb(j) + b(1); %w*x = h
-%          out_h(1)=1/(1+exp(-h(1))); %devia de levar for, mas ta hardcoded
-%          h(2)=w(1,2,1)*xa(j)+w(2,2,1)*xb(j) + b(2);
-%          out_h(2)=1/(1+exp(-h(2))); %%out de h
-%          %h(3)=w(1,3,1)*xa(j)+w(2,3,1)*xb(j) + b(2);
-%          %out_h(3)=1/(1+exp(-h(3))); %%out de h
-%          
-%          for k=1:1:1 %outputs
-%              out=w(1,k,2)*out_h(1)+w(2,k,2)*out_h(2) + b2(1)
-%              y(j)=1/(1+exp(-out)) %output Y
-%          end
-%          for k=1:1:1
-%             E_tot = (1/2)*(yd(j)-y(j))^2;
-%          end
-%            %começar daqui a implementar backpropagation...............
-%            %back prop
-%            
-%          for k=1:1:2
-%              deltak = -y(j)*(1-y(j))*(yd(j)-y(j));
-% %              w(k,1,2) = w(k,1,2) + deltak*alpha*h(k);
-%          end
-%          
-%          for i=1:1:2
-%              for k=1:1:2
-%                  
-%                  if (k == 1)
-%                         x = xa(j);
-%                  end
-%                  if(k == 2)
-%                         x = xb(j);
-%                  end
-%                  
-%                 deltah = out_h(i)*(1-out_h(i))*(w(i,1,2)*deltak);
-%                 w(k,i,1) = w(k,i,1) - alpha*deltah*x;
-%              end
-%          end
-%          
-%          for k=1:1:2
-%              w(k,1,2) = w(k,1,2) - deltak*alpha*out_h(k);
-%          end
-%                    
-%     end
-%     
-%     if(abs(yd-y) <= erro_desejado)
-%         break
-%     end
-% end
-erro_j = zeros(1,2);
+erro_j = zeros(1,5);
+conta_it = 0;
 while 1
 
 %foward prop
 
 %primeira hidden layer output
-output_node.outputA
-
+if( (yd-output_node.outputA) < 0.3*ones(1,s-1))
+    break;
+end
+conta_it = conta_it +1
 for j=1:1:s-1
     
     for m=1:1:n_nodes_per_layers
@@ -285,14 +232,22 @@ for j=1:1:s-1
      somatorio = 0;
      if(n_hidden_layers == 1)
         for k=1:1:n_nodes_per_layers
-            erro_j(k) = node(1,k).outputA(k)*(1-node(1,k).outputA(k));
+            erro_j(k) = node(1,k).outputA(j)*(1-node(1,k).outputA(j));
             somatorio = somatorio + deltaOut*output_node.weights(k);
             erro_j(k) = erro_j(k)*somatorio;
         end
         %se der merda vem aqui ver
-        for a=1:1:2
-            node(1,1).weights(a) = node(1,1).weights(a) + alpha*erro_j(a)*xa(j);
-            node(1,2).weights(a) = node(1,2).weights(a) + alpha*erro_j(a)*xb(j);
+        for a=1:1:2 %numero inputs
+            switch a
+                case 1
+                    x = xa(j);
+                case 2
+                    x = xb(j);
+            end
+            for b=1:1:n_nodes_per_layers
+                node(1,b).weights(a) = node(1,b).weights(a) + alpha*erro_j(a)*x;
+            
+            end
         end
      end
 end
