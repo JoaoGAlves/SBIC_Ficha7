@@ -15,7 +15,7 @@ R = yd;
 deltak = zeros(0,0);
 
 
-erro_desejado = ones(1,200).*0.15;
+erro_desejado = ones(1,1000).*0.15;
 w=zeros(3,3);
 w(:,:,1)=[w];
 w(:,:,2) =[w];
@@ -41,7 +41,7 @@ w(2,1,2) = 0.3;
 
 
 %w(:,:,:)
-alpha = 0.15;
+alpha = 0.2;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
@@ -108,13 +108,13 @@ node(n_hidden_layers,n_nodes_per_layers).output = zeros(1,s-1);
 
 for k=1:1:n_hidden_layers
     for i=1:1:n_nodes_per_layers
-        node(k,i).weights = -2.4/2 + -2.4/2*rand(1,n_nodes_per_layers);
-        node(k,i).bias = -2;
+        node(k,i).weights = -2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
+        node(k,i).bias = -1;
     end
 end
 
 output_node.weights = -2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
-output_node.bias = -2;
+output_node.bias = -1;
 output_node.output = 0;
 output_node.outputA = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -171,6 +171,7 @@ while 1
 %end
 conta_it = conta_it +1
 output_node.outputA
+
 for j=1:1:s-1
     
     for m=1:1:n_nodes_per_layers
@@ -227,7 +228,7 @@ for j=1:1:s-1
      delta_w_output = zeros(1,n_nodes_per_layers);
      for i=1:i:n_nodes_per_layers
           %JEGA:ultimo for n se lembra
-        delta_w_output(i) = alpha*deltaOut*node(n_hidden_layers,i).outputA(j); %%PROBLEMA NO node(n_hidden_layers,i).outputA(j)->tdd a 1 OU NO delta_w_output(i) que não enche
+        delta_w_output(i) = alpha*deltaOut*node(n_hidden_layers,i).outputA(j); %%PROBLEMA NO node(n_hidden_layers,i).outputA(j)->tdd a 1 OU NO delta_w_output(i) que nï¿½o enche
         output_node.weights(i) = output_node.weights(i) + delta_w_output(i);
         
      end
@@ -254,6 +255,14 @@ for j=1:1:s-1
             end
         end
      end
+end
+somatorio_mse=0;
+for i=1:1:s-1
+   somatorio_mse = somatorio_mse + (yd(i)-output_node.outputA(i)); 
+end 
+mse = 1/2*(somatorio_mse)^2
+if(mse < 0.005)
+    break;
 end
 end
 
