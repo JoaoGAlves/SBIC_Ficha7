@@ -16,39 +16,15 @@ deltak = zeros(0,0);
 
 
 erro_desejado = ones(1,1000).*0.15;
-w=zeros(3,3);
-w(:,:,1)=[w];
-w(:,:,2) =[w];
 
-%w(1,1,1) = -0.5 + 0.5*rand(1,1); %primeiras linhas
-%w(1,2,1) = -0.5 + 0.5*rand(1,1);
-%w(2,1,1) = -0.5 + 0.5*rand(1,1);
-%w(2,2,1) = -0.5 + 0.5*rand(1,1);
-w(1,1,1) = 0.3;
-w(1,2,1) = 0.3;
-w(2,1,1) = 0.3;
-w(2,2,1) = 0.3;
-w(3,1,1) = 0.3;
-w(3,2,1) = 0.3;
-
-
-
-%w(1,1,2) = -0.5 + 0.5*rand(1,1); %segundas linhas
-%w(2,1,2) = -0.5 + 0.5*rand(1,1);
-w(1,1,2) = 0.3;
-w(2,1,2) = 0.3;
-
-
-
-%w(:,:,:)
-alpha = 0.2;
+alpha = 0.1;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
 sizeB = [2 1000];
 sizeC = [1 1000];
 
-f = 3;
+f = 1;
 
 switch f
     case 1
@@ -99,7 +75,7 @@ for i=1:1:size(B, 1) %retira valores depois de encontrar 0
 end
 
 n_hidden_layers = 1;
-n_nodes_per_layers = 3;
+n_nodes_per_layers = 5;
 
 node(n_hidden_layers,n_nodes_per_layers).weights = zeros(1, n_nodes_per_layers);
 node(n_hidden_layers,n_nodes_per_layers).bias = ones(1,n_nodes_per_layers);
@@ -109,12 +85,12 @@ node(n_hidden_layers,n_nodes_per_layers).output = zeros(1,s-1);
 for k=1:1:n_hidden_layers
     for i=1:1:n_nodes_per_layers
         node(k,i).weights = -2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
-        node(k,i).bias = -1;
+        node(k,i).bias = 1;
     end
 end
 
 output_node.weights = -2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
-output_node.bias = -1;
+output_node.bias = 1;
 output_node.output = 0;
 output_node.outputA = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -159,14 +135,15 @@ y=y(1:1:s-1);
 yd=yd(1:1:s-1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-erro_j = zeros(1,5);
+erro_j = zeros(1,n_nodes_per_layers);
+erro_i = zeros(1,n_nodes_per_layers);
 %conta_it = 0;
 while 1
 
 %foward prop
 
 %conta_it = conta_it +1
-%output_node.outputA
+output_node.outputA
 
 for j=1:1:s-1
     
@@ -229,7 +206,6 @@ for j=1:1:s-1
         
      end
      
-     somatorio = 0;
      if(n_hidden_layers == 1)
         for k=1:1:n_nodes_per_layers
             erro_j(k) = node(1,k).outputA(j)*(1-node(1,k).outputA(j))*deltaOut*output_node.weights(k);
@@ -244,19 +220,58 @@ for j=1:1:s-1
                     x = xb(j);
             end
             for b=1:1:n_nodes_per_layers
-                node(1,b).weights(a) = node(1,b).weights(a) + alpha*erro_j(a)*x;
+                node(1,b).weights(a) = node(1,b).weights(a) + alpha*erro_j(b)*x;
             
             end
         end
      end
+     
+     if(n_hidden_layers >1)
+         
+         %%hidden layer ao lado do output
+        for k=1:1:n_nodes_per_layers
+            erro_j(k) = node(n_hidden_layers,k).outputA(j)*(1-node(n_hidden_layers,k).outputA(j))*deltaOut*output_node.weights(k); 
+        end
+        %se der merda vem aqui ver
+        for a=1:1:n_nodes_per_layers %numero inputs
+            for b=1:1:n_nodes_per_layers
+                node(n_hidden_layers,a).weights(b) = node(n_hidden_layers,a).weights(b) + alpha*erro_j(a)*node(1,b).outputA(j);
+            end
+        end
+        
+        %%hidden layer ao lado do input
+        somatorio = 0;
+        for k=1:1:n_nodes_per_layers
+            erro_i(k) = node(1,k).outputA(j)*(1-node(1,k).outputA(j));
+            for n=1:1:n_nodes_per_layers
+                somatorio = somatorio + node(n_hidden_layers,n).weights(k)*erro_j(n);
+            end
+            erro_i(k) =  erro_i(k)*somatorio;
+            somatorio = 0;
+        end
+        %se der merda vem aqui ver
+        for a=1:1:n_nodes_per_layers %numero inputs
+            switch a
+                case 1
+                    x = xa(j);
+                case 2
+                    x = xb(j);
+            end
+            for b=1:1:n_nodes_per_layers
+                node(1,b).weights(a) = node(1,b).weights(a) + alpha*erro_i(b)*x;
+            end
+        end
+     
+     end
+   
 end
     somatorio_mse=0;
     for i=1:1:s-1
        somatorio_mse = somatorio_mse + (yd(i)-output_node.outputA(i)); 
     end 
     mse = 1/2*(somatorio_mse)^2
-    if(mse < 0.0005)
-        break;
+    if(mse < 0.00005)
+        break
     end
 end
 
