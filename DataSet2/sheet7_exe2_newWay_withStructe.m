@@ -99,7 +99,7 @@ for i=1:1:size(B, 1) %retira valores depois de encontrar 0
 end
 
 n_hidden_layers = 1;
-n_nodes_per_layers = 5;
+n_nodes_per_layers = 3;
 
 node(n_hidden_layers,n_nodes_per_layers).weights = zeros(1, n_nodes_per_layers);
 node(n_hidden_layers,n_nodes_per_layers).bias = ones(1,n_nodes_per_layers);
@@ -108,13 +108,13 @@ node(n_hidden_layers,n_nodes_per_layers).output = zeros(1,s-1);
 
 for k=1:1:n_hidden_layers
     for i=1:1:n_nodes_per_layers
-        node(k,i).weights = -0.5 + rand(1,n_nodes_per_layers);%-2.4/2 + -2.4/2*rand(1,n_nodes_per_layers);
-        node(k,i).bias = -1;
+        node(k,i).weights = -2.4/2 + -2.4/2*rand(1,n_nodes_per_layers);
+        node(k,i).bias = -2;
     end
 end
 
-output_node.weights = -0.5 + rand(1,n_nodes_per_layers);%-2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
-output_node.bias = -1;
+output_node.weights = -2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
+output_node.bias = -2;
 output_node.output = 0;
 output_node.outputA = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -166,10 +166,11 @@ while 1
 %foward prop
 
 %primeira hidden layer output
-if( (yd-output_node.outputA) < 0.3*ones(1,s-1))
-    break;
-end
+%if( (yd-output_node.outputA) < 0.3*ones(1,s-1))
+ %   break;
+%end
 conta_it = conta_it +1
+output_node.outputA
 for j=1:1:s-1
     
     for m=1:1:n_nodes_per_layers
@@ -225,16 +226,19 @@ for j=1:1:s-1
      %alterar se for preciso para usar o w antigos e nao os mudados
      delta_w_output = zeros(1,n_nodes_per_layers);
      for i=1:i:n_nodes_per_layers
-        delta_w_output(i) = alpha*deltaOut*node(n_hidden_layers,i).outputA(j);
+          %JEGA:ultimo for n se lembra
+        delta_w_output(i) = alpha*deltaOut*node(n_hidden_layers,i).outputA(j); %%PROBLEMA NO node(n_hidden_layers,i).outputA(j)->tdd a 1 OU NO delta_w_output(i) que não enche
         output_node.weights(i) = output_node.weights(i) + delta_w_output(i);
+        
      end
      
      somatorio = 0;
      if(n_hidden_layers == 1)
         for k=1:1:n_nodes_per_layers
-            erro_j(k) = node(1,k).outputA(j)*(1-node(1,k).outputA(j));
-            somatorio = somatorio + deltaOut*output_node.weights(k);
-            erro_j(k) = erro_j(k)*somatorio;
+            erro_j(k) = node(1,k).outputA(j)*(1-node(1,k).outputA(j))*deltaOut*output_node.weights(k);
+            %somatorio = somatorio + deltaOut*output_node.weights(k);
+            %erro_j(k) = erro_j(k)*somatorio;
+            %somatorio = 0;
         end
         %se der merda vem aqui ver
         for a=1:1:2 %numero inputs

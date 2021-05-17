@@ -41,9 +41,7 @@ w(2,1,2) = 0.3;
 
 
 %w(:,:,:)
-alpha = 0.4;
-b = ones(1,2).*2;
-b2 = ones(1,2).*2;
+alpha = 0.3;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
@@ -104,19 +102,19 @@ n_hidden_layers = 1;
 n_nodes_per_layers = 5;
 
 node(n_hidden_layers,n_nodes_per_layers).weights = zeros(1, n_nodes_per_layers);
-node(n_hidden_layers,n_nodes_per_layers).bias = 1;
+node(n_hidden_layers,n_nodes_per_layers).bias = ones(1,n_nodes_per_layers);
 node(n_hidden_layers,n_nodes_per_layers).outputA = zeros(1,s-1);
 node(n_hidden_layers,n_nodes_per_layers).output = zeros(1,s-1);
 
 for k=1:1:n_hidden_layers
     for i=1:1:n_nodes_per_layers
-        node(k,i).weights = -0.5 + rand(1,n_nodes_per_layers);%-2.4/2 + -2.4/2*rand(1,n_nodes_per_layers);
-        node(k,i).bias = 0;
+        node(k,i).weights = -2.4/2 + -2.4/2*rand(1,n_nodes_per_layers);
+        node(k,i).bias = 1;
     end
 end
 
-output_node.weights = -0.5 + rand(1,n_nodes_per_layers);%-2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
-output_node.bias = 0;
+output_node.weights = -2.4/2 + (2.4/2+2.4/2)*rand(1,n_nodes_per_layers);
+output_node.bias = 1;
 output_node.output = 0;
 output_node.outputA = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,7 +139,7 @@ maximo_xb = max(xb);
 minimo_xb = min(xb);
 xa = (xa - minimo_xa)/(maximo_xa-minimo_xa);
 xb = (xb - minimo_xb)/(maximo_xb-minimo_xb);
-yd = (yd - -1)./(1 - - 1);
+yd = (yd +1)./(1 + 1);
 xa_t = (xa_t - minimo_xa)./(maximo_xa-minimo_xa);
 xb_t = (xb_t - minimo_xb)./(maximo_xb-minimo_xb);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -168,7 +166,9 @@ while 1
 %foward prop
 
 %primeira hidden layer output
-output_node.outputA
+if( (yd-output_node.outputA) < 0.3*ones(1,s-1))
+    break;
+end
 conta_it = conta_it +1
 for j=1:1:s-1
     
@@ -225,8 +225,10 @@ for j=1:1:s-1
      %alterar se for preciso para usar o w antigos e nao os mudados
      delta_w_output = zeros(1,n_nodes_per_layers);
      for i=1:i:n_nodes_per_layers
-        delta_w_output(i) = alpha*deltaOut*node(n_hidden_layers,i).outputA(j);
+          %JEGA:ultimo for n se lembra
+        delta_w_output(i) = alpha*deltaOut*node(n_hidden_layers,i).outputA(j); %%PROBLEMA NO node(n_hidden_layers,i).outputA(j)->tdd a 1 OU NO delta_w_output(i) que não enche
         output_node.weights(i) = output_node.weights(i) + delta_w_output(i);
+        delta_w_output
      end
      
      somatorio = 0;
@@ -235,6 +237,7 @@ for j=1:1:s-1
             erro_j(k) = node(1,k).outputA(j)*(1-node(1,k).outputA(j));
             somatorio = somatorio + deltaOut*output_node.weights(k);
             erro_j(k) = erro_j(k)*somatorio;
+            somatorio = 0;
         end
         %se der merda vem aqui ver
         for a=1:1:2 %numero inputs
