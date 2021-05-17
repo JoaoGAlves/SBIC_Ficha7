@@ -41,7 +41,7 @@ w(2,1,2) = 0.3;
 
 
 %w(:,:,:)
-alpha = 0.2;
+alpha = 0.3;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
@@ -71,7 +71,7 @@ fclose(fileID);
 fileID = fopen(stringOutputF, 'r');
     [C,count] = fscanf(fileID, '%d', sizeC);
 fclose(fileID);
-
+    C = (C +1)./(1 + 1);
 A=A';
 B=B';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -160,17 +160,13 @@ yd=yd(1:1:s-1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 erro_j = zeros(1,5);
-conta_it = 0;
+%conta_it = 0;
 while 1
 
 %foward prop
 
-%primeira hidden layer output
-%if( (yd-output_node.outputA) < 0.3*ones(1,s-1))
- %   break;
-%end
-conta_it = conta_it +1
-output_node.outputA
+%conta_it = conta_it +1
+%output_node.outputA
 
 for j=1:1:s-1
     
@@ -237,9 +233,7 @@ for j=1:1:s-1
      if(n_hidden_layers == 1)
         for k=1:1:n_nodes_per_layers
             erro_j(k) = node(1,k).outputA(j)*(1-node(1,k).outputA(j))*deltaOut*output_node.weights(k);
-            %somatorio = somatorio + deltaOut*output_node.weights(k);
-            %erro_j(k) = erro_j(k)*somatorio;
-            %somatorio = 0;
+            
         end
         %se der merda vem aqui ver
         for a=1:1:2 %numero inputs
@@ -256,15 +250,56 @@ for j=1:1:s-1
         end
      end
 end
-somatorio_mse=0;
-for i=1:1:s-1
-   somatorio_mse = somatorio_mse + (yd(i)-output_node.outputA(i)); 
-end 
-mse = 1/2*(somatorio_mse)^2
-if(mse < 0.005)
-    break;
+    somatorio_mse=0;
+    for i=1:1:s-1
+       somatorio_mse = somatorio_mse + (yd(i)-output_node.outputA(i)); 
+    end 
+    mse = 1/2*(somatorio_mse)^2
+    if(mse < 0.005)
+        break;
+    end
 end
+
+%---------------------------testar--------------------------%
+output_node.outputA = zeros(1,length(B));
+
+
+for j = 1:1:length(B)
+    for m=1:1:n_nodes_per_layers
+        output = 0;
+        for k=1:1:2
+             if (k == 1)
+                    x = xa_t(j);
+             end
+             if(k == 2)
+                    x = xb_t(j);
+             end
+            output = output + x*node(1,m).weights(k);
+        end
+        output = output - node(1,m).bias;
+        node(1,m).output(j) = output;
+        node(1,m).outputA(j) = 1/(1+exp(-node(1,m).output(j)));
+    end
+
+    for m=1:1:n_nodes_per_layers
+        output = 0;
+        k=0;
+        for k=1:1:n_nodes_per_layers
+            output = output + node(n_hidden_layers,k).outputA(j)*output_node.weights(k);
+        end
+        output = output - output_node.bias;
+        output_node.output(j) = output;
+        output_node.outputA(j) = 1/(1+exp(-output_node.output(j)));
+        if(output_node.outputA(j) >= 0.5)
+            output_node.outputA(j) = 1;
+        else
+            output_node.outputA(j) = 0;
+        end
+        
+     end
 end
+comparacao_entre_resultado_e_target = C - output_node.outputA;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
