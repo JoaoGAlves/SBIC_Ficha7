@@ -41,14 +41,14 @@ w(2,1,2) = 0.3;
 
 
 %w(:,:,:)
-alpha = 0.3;
+alpha = 0.2;
 
 %%%%%%%%%%%%%%%%ler txt%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sizeA = [3 1000];
 sizeB = [2 1000];
 sizeC = [1 1000];
 
-f = 1;
+f = 3;
 
 switch f
     case 1
@@ -255,7 +255,7 @@ end
        somatorio_mse = somatorio_mse + (yd(i)-output_node.outputA(i)); 
     end 
     mse = 1/2*(somatorio_mse)^2
-    if(mse < 0.005)
+    if(mse < 0.0005)
         break;
     end
 end
